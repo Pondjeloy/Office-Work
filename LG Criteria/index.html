@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LG Criteria — Credit Control Policy</title>
+  <style>
+    :root {
+      --lg: #a50034;
+      --lg-bright: #c00c3f;
+      --ink: #222;
+      --muted: #6b6b6b;
+      --line: #e6e6e6;
+      --bg: #f4f4f5;
+      --panel: #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "LG Smart UI", "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100%;
+    }
+    aside {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .brand {
+      padding: 20px 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand h1 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--lg);
+      letter-spacing: 0.02em;
+    }
+    .brand p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .lang {
+      display: flex;
+      gap: 6px;
+      padding: 12px 18px;
+    }
+    .lang button, .nav-btn {
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+    }
+    .lang button.active {
+      background: var(--lg);
+      color: #fff;
+      border-color: var(--lg);
+    }
+    nav { flex: 1; overflow: auto; padding: 6px 10px 16px; }
+    nav button {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      color: var(--ink);
+      display: flex;
+      gap: 8px;
+    }
+    nav button:hover { background: #f7f0f3; }
+    nav button.active { background: #f3e6eb; color: var(--lg); font-weight: 700; }
+    nav .num {
+      min-width: 22px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .files {
+      padding: 12px 18px 18px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .files a { color: var(--lg); text-decoration: none; }
+    .files a:hover { text-decoration: underline; }
+    main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .toolbar h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 650;
+    }
+    .pager { display: flex; align-items: center; gap: 8px; }
+    .stage {
+      flex: 1;
+      overflow: auto;
+      padding: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .stage img {
+      width: min(1100px, 100%);
+      height: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
+      border: 1px solid #ececec;
+    }
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      aside { min-height: auto; }
+      nav { max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="brand">
+      <h1>LG Criteria</h1>
+      <p>LGETH CCP Regulation<br>Credit Control Policy<br>Update 2026.10.01</p>
+    </div>
+    <div class="lang">
+      <button id="btn-th" class="active" type="button">ไทย</button>
+      <button id="btn-en" type="button">English</button>
+    </div>
+    <nav id="nav"></nav>
+    <div class="files">
+      ไฟล์เต็ม<br>
+      <a href="LG Criteria Update 01-10-2026.pdf">ต้นฉบับไทย (PDF)</a><br>
+      <a href="LG Criteria Update 01-10-2026 EN.pdf">English version (PDF)</a><br>
+      แยกหน้า: <a href="pages-th/">pages-th</a> · <a href="pages-en/">pages-en</a>
+    </div>
+  </aside>
+  <main>
+    <div class="toolbar">
+      <h2 id="title">Cover</h2>
+      <div class="pager">
+        <button class="nav-btn" id="prev" type="button">← ก่อนหน้า</button>
+        <span id="pos">1 / 16</span>
+        <button class="nav-btn" id="next" type="button">ถัดไป →</button>
+      </div>
+    </div>
+    <div class="stage">
+      <img id="slide" alt="Criteria page" />
+    </div>
+  </main>
+  <script>
+    const pages = [
+      { th: "หน้าปก", en: "Cover" },
+      { th: "เวลาทำการ / ตรวจใบสมัคร", en: "Operating Hours — Application Review" },
+      { th: "ประเภท: Credit Card", en: "Category: Credit Card" },
+      { th: "ประเภท: Non Credit", en: "Category: Non-Credit" },
+      { th: "ประเภท: Non Credit (ต่อ)", en: "Category: Non-Credit (continued)" },
+      { th: "วิธีคำนวณรายได้ / ที่อยู่ติดตั้ง", en: "Income Calculation and Installation Address" },
+      { th: "Credit Limit and Unit Limit", en: "Credit Limit and Unit Limit Criteria" },
+      { th: "ประเภท: ต่างชาติ", en: "Category: Foreign Nationals" },
+      { th: "ประเภท: นิติบุคคลไทย", en: "Category: Thai Juristic Person" },
+      { th: "นิติบุคคลไทย (ลูกค้าองค์กร)", en: "Thai Juristic Person (Corporate Customer)" },
+      { th: "ตารางแนบ 1 สถานที่ติดตั้ง", en: "Appendix Table 1 — Installation sites" },
+      { th: "FAQ (1/5)", en: "FAQ (1/5)" },
+      { th: "FAQ (2/5)", en: "FAQ (2/5)" },
+      { th: "FAQ (3/5)", en: "FAQ (3/5)" },
+      { th: "FAQ (4/5)", en: "FAQ (4/5)" },
+      { th: "FAQ (5/5)", en: "FAQ (5/5)" }
+    ];
+    let lang = "th";
+    let idx = 0;
+    const nav = document.getElementById("nav");
+    const slide = document.getElementById("slide");
+    const title = document.getElementById("title");
+    const pos = document.getElementById("pos");
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function renderNav() {
+      nav.innerHTML = pages.map((p, i) =>
+        `<button type="button" data-i="${i}" class="${i===idx?"active":""}"><span class="num">${i+1}</span><span>${p[lang]}</span></button>`
+      ).join("");
+    }
+    function show() {
+      const folder = lang === "th" ? "_preview-th" : "_preview-en";
+      slide.src = folder + "/page-" + pad(idx + 1) + ".png";
+      title.textContent = pages[idx][lang];
+      pos.textContent = (idx + 1) + " / " + pages.length;
+      renderNav();
+      document.getElementById("btn-th").classList.toggle("active", lang === "th");
+      document.getElementById("btn-en").classList.toggle("active", lang === "en");
+    }
+    nav.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-i]");
+      if (!b) return;
+      idx = Number(b.dataset.i);
+      show();
+    });
+    document.getElementById("btn-th").onclick = () => { lang = "th"; show(); };
+    document.getElementById("btn-en").onclick = () => { lang = "en"; show(); };
+    document.getElementById("prev").onclick = () => { idx = (idx + pages.length - 1) % pages.length; show(); };
+    document.getElementById("next").onclick = () => { idx = (idx + 1) % pages.length; show(); };
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "PageDown") document.getElementById("next").click();
+      if (e.key === "ArrowLeft" || e.key === "PageUp") document.getElementById("prev").click();
+      if (e.key === "e" || e.key === "E") document.getElementById("btn-en").click();
+      if (e.key === "t" || e.key === "T") document.getElementById("btn-th").click();
+    });
+    show();
+  </script>
+</body>
+</html>
