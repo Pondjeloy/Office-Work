@@ -126,13 +126,28 @@
       justify-content: center;
       align-items: flex-start;
     }
-    .stage img {
+    .slides {
+      position: relative;
       width: min(1100px, 100%);
-      height: auto;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 8px 28px rgba(0,0,0,.08);
       border: 1px solid #ececec;
+      overflow: hidden;
+    }
+    /* every page is stacked in the same box; only the active one is visible,
+       so changing page is a class swap instead of a new download */
+    .slides img {
+      display: block;
+      width: 100%;
+      height: auto;
+      position: absolute;
+      inset: 0;
+      visibility: hidden;
+    }
+    .slides img.on {
+      position: relative;
+      visibility: visible;
     }
     @media (max-width: 860px) {
       body { grid-template-columns: 1fr; }
@@ -169,7 +184,7 @@
       </div>
     </div>
     <div class="stage">
-      <img id="slide" alt="Criteria page" />
+      <div class="slides" id="slides"></div>
     </div>
   </main>
   <script>
@@ -194,22 +209,88 @@
     let lang = "th";
     let idx = 0;
     const nav = document.getElementById("nav");
-    const slide = document.getElementById("slide");
+    const slides = document.getElementById("slides");
     const title = document.getElementById("title");
     const pos = document.getElementById("pos");
+    const W = 1326, H = 918;
 
     function pad(n) { return String(n).padStart(2, "0"); }
+    function url(l, i) { return "_preview-" + l + "/page-" + pad(i + 1) + ".png"; }
+
+    // One <img> per page and language, created once. The image starts
+    // downloading the moment load() gives it a src, and stays in the page
+    // afterwards, so going back to a page never downloads again.
+    const imgs = { th: [], en: [] };
+    for (const l of ["th", "en"]) {
+      pages.forEach((p, i) => {
+        const im = document.createElement("img");
+        im.width = W; im.height = H;
+        im.alt = p[l];
+        im.decoding = "async";
+        slides.appendChild(im);
+        imgs[l].push(im);
+      });
+    }
+    function load(l, i, urgent) {
+      const im = imgs[l][i];
+      if (im.dataset.started) return im;
+      im.dataset.started = "1";
+      if (urgent) im.fetchPriority = "high";
+      im.src = url(l, i);
+      return im;
+    }
+    // Decode ahead so the swap paints in the same frame as the click.
+    function warm(l, i) {
+      const im = load(l, (i + pages.length) % pages.length);
+      if (im.decode) im.decode().catch(() => {});
+    }
+    // After the first page is on screen, fetch everything else in the
+    // background: rest of this language in reading order, then the other one.
+    let queued = false;
+    function preloadAll() {
+      if (queued) return;
+      queued = true;
+      const other = lang === "th" ? "en" : "th";
+      const list = [];
+      for (let k = 1; k < pages.length; k++) list.push([lang, (idx + k) % pages.length]);
+      for (let k = 0; k < pages.length; k++) list.push([other, (idx + k) % pages.length]);
+      let n = 0;
+      (function next() {
+        if (n >= list.length) return;
+        const [l, i] = list[n++];
+        const im = load(l, i);
+        if (im.complete) return next();
+        im.addEventListener("load", next, { once: true });
+        im.addEventListener("error", next, { once: true });
+      })();
+    }
+
+    let current = null;
     function renderNav() {
       nav.innerHTML = pages.map((p, i) =>
         `<button type="button" data-i="${i}" class="${i===idx?"active":""}"><span class="num">${i+1}</span><span>${p[lang]}</span></button>`
       ).join("");
     }
+    let navLang = null;
     function show() {
-      const folder = lang === "th" ? "_preview-th" : "_preview-en";
-      slide.src = folder + "/page-" + pad(idx + 1) + ".png";
+      const im = load(lang, idx, true);
+      if (current !== im) {
+        if (current) current.classList.remove("on");
+        im.classList.add("on");
+        current = im;
+      }
+      warm(lang, idx + 1);
+      warm(lang, idx - 1);
+      warm(lang === "th" ? "en" : "th", idx);
+      if (im.complete) preloadAll();
+      else im.addEventListener("load", preloadAll, { once: true });
+
       title.textContent = pages[idx][lang];
       pos.textContent = (idx + 1) + " / " + pages.length;
-      renderNav();
+      if (navLang !== lang) { renderNav(); navLang = lang; }
+      else nav.querySelectorAll("button").forEach((b, i) => b.classList.toggle("active", i === idx));
+      const act = nav.querySelector("button.active");
+      if (act) act.scrollIntoView({ block: "nearest" });
       document.getElementById("btn-th").classList.toggle("active", lang === "th");
       document.getElementById("btn-en").classList.toggle("active", lang === "en");
     }
